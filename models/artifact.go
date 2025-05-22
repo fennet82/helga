@@ -5,13 +5,14 @@ import (
 	helga_errors "cicd/operators/helga/errors"
 	"cicd/operators/helga/internal/logger"
 	"cicd/operators/helga/internal/utils"
+	"cicd/operators/helga/internal/vars"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
+	"regexp"
 )
 
 type Artifact struct {
@@ -24,12 +25,15 @@ type Artifact struct {
 
 func (a *Artifact) Validate() error {
 	var (
-		validationErr error  = nil
-		structName    string = "Artifact"
+		validationErr error          = nil
+		structName    string         = "Artifact"
+		dReg          *regexp.Regexp = regexp.MustCompile(vars.DOMAIN_VALIDATION_REGEX)
 	)
 
-	if _, err := url.ParseRequestURI(a.Domain); err != nil {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: err}
+	if !dReg.MatchString(a.Domain) {
+		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: fmt.Errorf(
+			"domain: %s, did not pass regex validation please refer to this regex for fixing: %s", a.Domain, vars.DOMAIN_VALIDATION_REGEX,
+		)}
 	}
 
 	if a.Username == "" {
@@ -54,25 +58,39 @@ func (a *Artifact) Validate() error {
 	return validationErr
 }
 
-func (dest_a *Artifact) SyncArtifact(src_a *Artifact) {
-	if src_a.Domain != "" && dest_a.Domain == "" {
-		dest_a.Domain = src_a.Domain
+func (dest *Artifact) Sync(src *Artifact) {
+	if src.Domain != "" && dest.Domain == "" {
+		dest.Domain = src.Domain
 	}
 
-	if src_a.Username != "" && dest_a.Domain == "" {
-		dest_a.Username = src_a.Username
+	if src.Username != "" && dest.Domain == "" {
+		dest.Username = src.Username
 	}
 
-	if src_a.Password != "" && dest_a.Domain == "" {
-		dest_a.Password = src_a.Password
+	if src.Password != "" && dest.Domain == "" {
+		dest.Password = src.Password
 	}
 
-	if len(src_a.Repos) > 0 && len(dest_a.Repos) == 0 {
-		dest_a.Repos = src_a.Repos
+	if src.DecideByVersion != nil && dest.DecideByVersion == nil {
+		dest.DecideByVersion = src.DecideByVersion
 	}
 
-	if src_a.DecideByVersion != nil && dest_a.DecideByVersion == nil {
-		dest_a.DecideByVersion = src_a.DecideByVersion
+	syncReposList(&dest.Repos, &src.Repos)
+}
+
+func syncReposList(destRepos *[]*Repo, srcRepos *[]*Repo) {
+	seen := make(map[string]*Repo)
+
+	for _, r := range *destRepos {
+		seen[r.Name] = r
+	}
+
+	for _, r := range *srcRepos {
+		if existing, exists := seen[r.Name]; exists {
+			existing.Sync(r)
+		} else {
+			*destRepos = append(*destRepos, r)
+		}
 	}
 }
 
@@ -102,8 +120,8 @@ items.find({
 			artifactoryErr.Path = p
 
 			req, err := http.NewRequest("POST",
-				a.Domain+"/artifactory/api/search/aql",
-				bytes.NewBuffer([]byte(fmt.Sprintf(aqlTemplate, r.Name, p))),
+				a.Domain+vars.AQL_ARTIFACT_PATH_POSTFIX,
+				bytes.NewBuffer(fmt.Appendf(nil, aqlTemplate, r.Name, p)),
 			)
 
 			if err != nil {

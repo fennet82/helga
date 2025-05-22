@@ -6,7 +6,6 @@ import (
 	"cicd/operators/helga/internal/vars"
 	"cicd/operators/helga/models"
 	"errors"
-	"fmt"
 	"net/url"
 	"os"
 
@@ -46,7 +45,7 @@ func (g *Global) Validate() error {
 	return validationErr
 }
 
-func (c *Config) Validate() error {
+func (c *Config) validate() error {
 	var (
 		validationErr error  = nil
 		structName    string = "Config"
@@ -73,10 +72,13 @@ func (c *Config) Validate() error {
 func (c *Config) syncClusterArtifactsWithGlobal() {
 	for _, cl := range c.Clusters {
 		for _, ns := range cl.Namespaces {
-			fmt.Printf("%v\n", c.Global)
-			ns.Artifact.SyncArtifact(c.Global.artifact)
+			ns.Artifact.Sync(c.Global.artifact)
 		}
 	}
+}
+
+func (c *Config) syncWithGlobal() {
+	c.syncClusterArtifactsWithGlobal()
 }
 
 func (c *Config) UnmarshalYAMLConfig() error {
@@ -99,7 +101,7 @@ func (c *Config) UnmarshalYAMLConfig() error {
 		return configErr
 	}
 
-	c.syncClusterArtifactsWithGlobal()
+	c.syncWithGlobal()
 
-	return c.Validate()
+	return c.validate()
 }
