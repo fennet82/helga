@@ -10,6 +10,6 @@ var (
 )
 
 const (
-	DOMAIN_VALIDATION_REGEX = `^(https?:\/\/)?[a-zA-Z0-9][a-zA-Z0-9.-]*(:[0-9]+)?$`
+	DOMAIN_VALIDATION_REGEX   = `^(https?:\/\/)?[a-zA-Z0-9][a-zA-Z0-9.-]*(:[0-9]+)?$`
 	AQL_ARTIFACT_PATH_POSTFIX = "/artifactory/api/search/aql"
 )

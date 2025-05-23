@@ -1,0 +1,2 @@
+{"time":"2025-05-23T23:35:28.003341206+03:00","level":"ERROR","msg":"error loading configuration for helga please check the configuration again derived error: open \"./helga_conf_example.yaml\": no such file or directory"}
+{"time":"2025-05-23T23:35:28.003964261+03:00","level":"ERROR","msg":"error loading configuration for helga please check the configuration again derived error: open \"./helga_conf_example.yaml\": no such file or directory"}

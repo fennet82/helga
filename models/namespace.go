@@ -3,16 +3,12 @@ package models
 import (
 	helga_errors "cicd/operators/helga/errors"
 	"errors"
-	"github.com/mittwald/go-helm-client"
 )
 
 type Namespace struct {
 	Name     string    `yaml:"name"`
 	Artifact *Artifact `yaml:"artifact"`
-	helmCli *helmclient.HelmClient
 }
-
-func (ns *Namespace) Init() error 
 
 func (ns *Namespace) Validate() error {
 	var (

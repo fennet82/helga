@@ -3,7 +3,7 @@
 #
 # Binaries for programs and plugins
 *.exe
-dist/*
+bin/*
 *.exe~
 *.dll
 *.so
@@ -16,7 +16,10 @@ dist/*
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/*
+
+# vscode 
+.vscode/*
 
 # Go workspace file
 go.work

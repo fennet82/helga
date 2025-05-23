@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"cicd/operators/helga/internal/vars"
+
 	slogmulti "github.com/samber/slog-multi"
 )
 
