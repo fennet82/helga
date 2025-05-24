@@ -1,9 +1,10 @@
 package models
 
 import (
-	helga_errors "cicd/operators/helga/errors"
 	"errors"
 	"fmt"
+
+	helga_errors "cicd/operators/helga/errors"
 )
 
 type Repo struct {
@@ -11,23 +12,23 @@ type Repo struct {
 	Paths []string `yaml:"paths"`
 }
 
-func (r *Repo) Validate() error {
+func (r *Repo) Validate() []error {
 	var (
-		validationErr error  = nil
-		structName    string = "Repo"
+		validationErrs []error
+		structName     = "Repo"
 	)
 
 	if r.Name == "" {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("repo name cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("repo name cannot be empty")})
 	}
 
 	if len(r.Paths) == 0 {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("length of repo paths list cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("length of repo paths list cannot be empty")})
 	}
 
-	helga_errors.HandleError(validationErr)
+	helga_errors.HandleErrors(validationErrs)
 
-	return validationErr
+	return validationErrs
 }
 
 func (dest *Repo) Sync(src *Repo) error {

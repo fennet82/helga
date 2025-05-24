@@ -1,4 +1,9 @@
 global:
+  cluster:
+    # username:
+    # password:
+    # CACertFilePath:
+    # insecureSkipTLSVerify:
   artifact:
     decideByVersion: false
     domain: "artifact.example.com"
@@ -15,6 +20,8 @@ clusters:
     server: "https://cluster1.example.com"
     username: "cluster_user_1"
     password: "cluster_pass_1"
+    insecureSkipTLSVerify: true
+    CACertFilePath: "path"
     namespaces:
       - name: "namespace-1"
         artifact:
@@ -34,14 +41,15 @@ clusters:
     server: "https://cluster2.example.com"
     username: "cluster_user_2"
     password: "cluster_pass_2"
+    insecureSkipTLSVerify: true
     namespaces:
       - name: "namespace-1"
         artifact:
-          artifact_paths:
+          paths:
             - "/namespace-1/path/to/artifact5"
             - "/namespace-1/path/to/artifact6"
       - name: "namespace-3"
         artifact:
-          artifact_paths:
+          paths:
             - "/namespace-3/path/to/artifact7"
             - "/namespace-3/path/to/artifact8"

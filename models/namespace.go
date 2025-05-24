@@ -1,8 +1,10 @@
 package models
 
 import (
-	helga_errors "cicd/operators/helga/errors"
 	"errors"
+	"fmt"
+
+	helga_errors "cicd/operators/helga/errors"
 )
 
 type Namespace struct {
@@ -10,23 +12,23 @@ type Namespace struct {
 	Artifact *Artifact `yaml:"artifact"`
 }
 
-func (ns *Namespace) Validate() error {
+func (ns *Namespace) Validate() []error {
 	var (
-		validationErr error  = nil
-		structName    string = "Namespace"
+		validationErrs []error
+		structName     = "Namespace"
 	)
 
 	if ns.Name == "" {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("repo name cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("namespace name cannot be empty")})
 	}
 
-	if err := ns.Artifact.Validate(); err != nil {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: err}
+	if errs := ns.Artifact.Validate(); errs != nil {
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: fmt.Errorf("error artifact %s did not pass validation", ns.Artifact.Domain)})
 	}
 
-	helga_errors.HandleError(validationErr)
+	helga_errors.HandleErrors(validationErrs)
 
-	return validationErr
+	return validationErrs
 }
 
 func (ns *Namespace) OrganizeHelmPackages() []*ArtifactHelmPackage {

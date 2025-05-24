@@ -2,10 +2,12 @@ package utils
 
 import (
 	"fmt"
+
+	helga_errors "cicd/operators/helga/errors"
 )
 
 type Validatable interface {
-	Validate() error
+	Validate() []error
 }
 
 func ToValidatableSlice[T Validatable](ss []T) []Validatable {
@@ -18,16 +20,16 @@ func ToValidatableSlice[T Validatable](ss []T) []Validatable {
 	return result
 }
 
-func FromValidatableSlice[T any](vals []Validatable) ([]T, error) {
+func FromValidatableSlice[T any](vals []Validatable) []T {
 	result := make([]T, 0, len(vals))
 	for _, v := range vals {
 		typed, ok := v.(T)
 		if !ok {
-			return nil, fmt.Errorf("type assertion failed for value: %v", v)
+			helga_errors.HandleError(fmt.Errorf("type assertion failed for value: %v", v))
 		}
 		result = append(result, typed)
 	}
-	return result, nil
+	return result
 }
 
 func FilterByErrFunc[T any](ss []T, f func(T) error) (ret []T) {

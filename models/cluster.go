@@ -1,10 +1,13 @@
 package models
 
 import (
+	"errors"
+	"fmt"
+	"regexp"
+
 	helga_errors "cicd/operators/helga/errors"
 	"cicd/operators/helga/internal/utils"
-	"errors"
-	"net/url"
+	"cicd/operators/helga/internal/vars"
 )
 
 type Cluster struct {
@@ -15,38 +18,41 @@ type Cluster struct {
 	Namespaces []*Namespace `yaml:"namespaces"`
 }
 
-func (c *Cluster) Validate() error {
+func (c *Cluster) Validate() []error {
 	var (
-		validationErr error  = nil
-		structName    string = "Cluster"
+		validationErrs []error
+		structName     = "Cluster"
+		dReg           = regexp.MustCompile(vars.DOMAIN_VALIDATION_REGEX)
 	)
 
 	if c.Name == "" {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("name field cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("name field cannot be empty")})
 	}
 
-	if _, err := url.ParseRequestURI(c.Server); err != nil {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: err}
+	if !dReg.MatchString(c.Server) {
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: fmt.Errorf(
+			"server: %s, did not pass regex validation please refer to this regex for fixing: %s", c.Server, vars.DOMAIN_VALIDATION_REGEX,
+		)})
 	}
 
 	if c.Username == "" {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("username field cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("username field cannot be empty")})
 	}
 
 	if c.Password == "" {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("password field cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("password field cannot be empty")})
 	}
 
 	errs, filteredNameSpace := utils.FilterByValidation(utils.ToValidatableSlice(c.Namespaces), "namespace: %v did not pass validation, changing availability to false")
 	helga_errors.HandleErrors(errs)
 
-	c.Namespaces, validationErr = utils.FromValidatableSlice[*Namespace](filteredNameSpace)
+	c.Namespaces = utils.FromValidatableSlice[*Namespace](filteredNameSpace)
 
 	if len(c.Namespaces) == 0 {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("namespaces list cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("namespaces list cannot be empty")})
 	}
 
-	helga_errors.HandleError(validationErr)
+	helga_errors.HandleErrors(validationErrs)
 
-	return validationErr
+	return validationErrs
 }

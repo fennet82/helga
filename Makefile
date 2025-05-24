@@ -1,68 +1,110 @@
-
 APP_NAME=helga
 CONF_FILE_PATH=helga_conf_example.yaml
-EXECUTABLE_PATH="./bin/helga"
+EXECUTABLE_PATH="./bin"
+GOLINT_FILE_PATH=.golangci.yaml
 SHELL := /bin/bash
+
+COLOR_PURPLE=\\033[1;35m
+COLOR_RESET=\\033[0m
 
 .EXPORT_ALL_VARIABLES:
 export GO111MODULE=on
-export LOGS_FILE_PATH=./$(APP_NAME).log 
+export LOGS_FILE_PATH=./$(APP_NAME).log
 export HELGA_CONF_FILE_PATH=$(CONF_FILE_PATH)
 
-.PHONY: all setup check-quality lint vet fmt tidy test-coverage build run vendor clean
-
+# Main targets
+.PHONY: all
 all: setup check-quality test-coverage build run clean
 
+.PHONY: setup
 setup: tidy vendor
 
+.PHONY: vendor
 vendor:
-	@echo "--> Vendoring Go modules..."
+	@echo -e "${COLOR_PURPLE}--> Vendoring Go modules...${COLOR_RESET}"
 	go mod vendor
-	@echo "Vendor complete."
+	@echo -e "${COLOR_PURPLE}Vendor complete.${COLOR_RESET}"
 
+.PHONY: tidy
 tidy:
-	@echo "--> Tidying Go modules..."
+	@echo -e "${COLOR_PURPLE}--> Tidying Go modules...${COLOR_RESET}"
 	go mod tidy
-	@echo "Tidy complete."
+	@echo -e "${COLOR_PURPLE}Tidy complete.${COLOR_RESET}"
 
+.PHONY: check-quality
 check-quality: lint fmt vet
 
+.PHONY: lint
 lint:
-	@echo "--> Running golangci-lint..."
-	golangci-lint run || true
-	@echo "Linting complete."
+	@echo -e "${COLOR_PURPLE}--> Running golangci-lint...${COLOR_RESET}"
+	golangci-lint -c $(GOLINT_FILE_PATH) run || true
+	@echo -e "${COLOR_PURPLE}Linting complete.${COLOR_RESET}"
 
+.PHONY: vet
 vet:
-	@echo "--> Running go vet..."
+	@echo -e "${COLOR_PURPLE}--> Running go vet...${COLOR_RESET}"
 	go vet ./...
-	@echo "Vet complete."
+	@echo -e "${COLOR_PURPLE}Vet complete.${COLOR_RESET}"
 
+.PHONY: fmt
 fmt:
-	@echo "--> Running go fmt..."
+	@echo -e "${COLOR_PURPLE}--> Running go fmt...${COLOR_RESET}"
 	go fmt ./...
-	@echo "Fmt complete."
+	@echo -e "${COLOR_PURPLE}Fmt complete.${COLOR_RESET}"
 
+.PHONY: test-coverage
 test-coverage:
-	@echo "--> Running tests with coverage..."
+	@echo -e "${COLOR_PURPLE}--> Running tests with coverage...${COLOR_RESET}"
 	go test -v -timeout 10m ./... -coverprofile=coverage.out -json > report.json
 	go tool cover -html=coverage.out
-	@echo "Test coverage report generated."
+	@echo -e "${COLOR_PURPLE}Test coverage report generated.${COLOR_RESET}"
 
+.PHONY: build
 build: setup
-	@echo "--> Building $(APP_NAME) executable..."
+	@echo -e "${COLOR_PURPLE}--> Building $(APP_NAME) executable...${COLOR_RESET}"
 	mkdir -p bin/
-	go build -mod=vendor -o $(EXECUTABLE_PATH) ./cmd
-	@echo "Build passed. Executable created at $(EXECUTABLE_PATH)"
+	go build -mod=vendor -o $(EXECUTABLE_PATH)/$(APP_NAME) ./cmd
+	@echo -e "${COLOR_PURPLE}Build passed. Executable created at $(EXECUTABLE_PATH)/$(APP_NAME)${COLOR_RESET}"
 
+.PHONY: run
 run: build
-	@echo "--> Running $(APP_NAME)..."
-	chmod +x $(EXECUTABLE_PATH)
-	$(EXECUTABLE_PATH)
+	@echo -e "${COLOR_PURPLE}--> Running $(APP_NAME)...${COLOR_RESET}"
+	chmod +x $(EXECUTABLE_PATH)/$(APP_NAME)
+	$(EXECUTABLE_PATH)/$(APP_NAME)
 
+.PHONY: clean
 clean:
-	@echo "--> Cleaning up generated files..."
+	@echo -e "${COLOR_PURPLE}--> Cleaning up generated files...${COLOR_RESET}"
 	go clean
 	rm -rf bin/
 	rm -rf vendor/
 	rm -f cover*.out report.json $(APP_NAME).log
-	@echo "Clean complete."
+	@echo -e "${COLOR_PURPLE}Clean complete.${COLOR_RESET}"
+
+# Playground targets
+.PHONY: pg-init
+pg-init: setup
+	@echo -e "${COLOR_PURPLE}--> Creating playground.go under ./playground${COLOR_RESET}"
+	mkdir -p ./playground
+	touch ./playground/main.go
+	@echo -e "${COLOR_PURPLE}--> file created${COLOR_RESET}"
+
+.PHONY: pg-build
+pg-build:
+	@echo -e "${COLOR_PURPLE}--> Building playground executable...${COLOR_RESET}"
+	mkdir -p bin/
+	go build -mod=vendor -o $(EXECUTABLE_PATH)/playground ./playground
+	@echo -e "${COLOR_PURPLE}Build passed. Executable created at $(EXECUTABLE_PATH)/playground${COLOR_RESET}"
+
+.PHONY: pg-run
+pg-run:
+	@echo -e "${COLOR_PURPLE}--> Running playground...${COLOR_RESET}"
+	chmod +x $(EXECUTABLE_PATH)/playground
+	$(EXECUTABLE_PATH)/playground
+
+.PHONY: pg-clean
+pg-clean:
+	@echo -e "${COLOR_PURPLE}--> cleaning playground${COLOR_RESET}"
+	rm -rf playground
+	rm -f $(EXECUTABLE_PATH)/playground
+	@echo -e "${COLOR_PURPLE}Clean complete.${COLOR_RESET}"

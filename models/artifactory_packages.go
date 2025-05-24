@@ -1,10 +1,11 @@
 package models
 
 import (
-	helga_errors "cicd/operators/helga/errors"
 	"fmt"
 	"strings"
 	"time"
+
+	helga_errors "cicd/operators/helga/errors"
 
 	"golang.org/x/mod/semver"
 )

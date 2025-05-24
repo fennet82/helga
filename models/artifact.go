@@ -2,10 +2,6 @@ package models
 
 import (
 	"bytes"
-	helga_errors "cicd/operators/helga/errors"
-	"cicd/operators/helga/internal/logger"
-	"cicd/operators/helga/internal/utils"
-	"cicd/operators/helga/internal/vars"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -13,6 +9,11 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+
+	helga_errors "cicd/operators/helga/errors"
+	"cicd/operators/helga/internal/logger"
+	"cicd/operators/helga/internal/utils"
+	"cicd/operators/helga/internal/vars"
 )
 
 type Artifact struct {
@@ -23,39 +24,39 @@ type Artifact struct {
 	Repos           []*Repo `yaml:"repos"`
 }
 
-func (a *Artifact) Validate() error {
+func (a *Artifact) Validate() []error {
 	var (
-		validationErr error          = nil
-		structName    string         = "Artifact"
-		dReg          *regexp.Regexp = regexp.MustCompile(vars.DOMAIN_VALIDATION_REGEX)
+		validationErrs []error
+		structName     = "Artifact"
+		dReg           = regexp.MustCompile(vars.DOMAIN_VALIDATION_REGEX)
 	)
 
 	if !dReg.MatchString(a.Domain) {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: fmt.Errorf(
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: fmt.Errorf(
 			"domain: %s, did not pass regex validation please refer to this regex for fixing: %s", a.Domain, vars.DOMAIN_VALIDATION_REGEX,
-		)}
+		)})
 	}
 
 	if a.Username == "" {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("username field cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("username field cannot be empty")})
 	}
 
 	if a.Password == "" {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("password field cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("password field cannot be empty")})
 	}
 
 	errs, filteredRepos := utils.FilterByValidation(utils.ToValidatableSlice(a.Repos), "repo: %v, did not pass validation, changing availability to false")
 	helga_errors.HandleErrors(errs)
 
-	a.Repos, validationErr = utils.FromValidatableSlice[*Repo](filteredRepos)
+	a.Repos = utils.FromValidatableSlice[*Repo](filteredRepos)
 
 	if len(a.Repos) == 0 {
-		validationErr = &helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("repos list cannot be empty")}
+		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("repos list cannot be empty")})
 	}
 
-	helga_errors.HandleError(validationErr)
+	helga_errors.HandleErrors(validationErrs)
 
-	return validationErr
+	return validationErrs
 }
 
 func (dest *Artifact) Sync(src *Artifact) {

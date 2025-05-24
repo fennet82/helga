@@ -13,9 +13,9 @@ func finalizer() {
 func main() {
 	var helga_c config.Config
 
-	err := helga_c.UnmarshalYAMLConfig()
-	if err != nil {
-		helga_errors.HandleError(err)
+	errs := helga_c.UnmarshalYAMLConfig()
+	if errs != nil {
+		helga_errors.HandleErrors(errs)
 
 		return
 	}

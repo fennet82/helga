@@ -1,0 +1,2 @@
+TODO: add cacert by path or by filename which refers to a secret or by directory certs where the name on the .ca file is linked to the cluster 
+TODO: add base-helm chart

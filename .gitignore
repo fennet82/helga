@@ -21,6 +21,9 @@ vendor/*
 # vscode 
 .vscode/*
 
+# playground
+playground/*
+
 # Go workspace file
 go.work
 go.work.sum
