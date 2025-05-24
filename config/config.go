@@ -30,7 +30,7 @@ func (g *Global) Validate() []error {
 		structName     = "Global"
 		dReg           = regexp.MustCompile(vars.DOMAIN_VALIDATION_REGEX)
 	)
-	
+
 	// artifact validation
 	if !dReg.MatchString(g.artifact.Domain) {
 		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: fmt.Errorf(

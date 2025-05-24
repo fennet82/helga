@@ -63,7 +63,7 @@ test-coverage:
 build: setup
 	@echo -e "${COLOR_PURPLE}--> Building $(APP_NAME) executable...${COLOR_RESET}"
 	mkdir -p bin/
-	go build -mod=vendor -o $(EXECUTABLE_PATH)/$(APP_NAME) ./cmd
+	GODEBUG=panicnil=1 go build -mod=vendor -o $(EXECUTABLE_PATH)/$(APP_NAME) ./cmd
 	@echo -e "${COLOR_PURPLE}Build passed. Executable created at $(EXECUTABLE_PATH)/$(APP_NAME)${COLOR_RESET}"
 
 .PHONY: run
@@ -78,7 +78,8 @@ clean:
 	go clean
 	rm -rf bin/
 	rm -rf vendor/
-	rm -f cover*.out report.json $(APP_NAME).log
+	rm -f cover*.out report.json 
+	rm -f $(APP_NAME).log
 	@echo -e "${COLOR_PURPLE}Clean complete.${COLOR_RESET}"
 
 # Playground targets

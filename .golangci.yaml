@@ -14,11 +14,6 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
-    paths:
-      - bin
-      - vendor
-      - .vscode
-      - playground
 
 issues:
   max-issues-per-linter: 0

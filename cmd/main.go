@@ -6,19 +6,21 @@ import (
 	"cicd/operators/helga/internal/logger"
 )
 
-func finalizer() {
-	logger.GetInstance().CloseLogFile()
-}
-
 func main() {
 	var helga_c config.Config
+
+	logger.GetLoggerInstance().Info("loading configuration...")
 
 	errs := helga_c.UnmarshalYAMLConfig()
 	if errs != nil {
 		helga_errors.HandleErrors(errs)
-
-		return
+		panic(errs)
 	}
 
-	finalizer()
+	defer finalize()
+}
+
+func finalize() {
+	logger.GetLoggerInstance().Error("closing log file")
+	logger.GetInstance().CloseLogFile()
 }
