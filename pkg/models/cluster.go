@@ -54,7 +54,7 @@ func (c *Cluster) Validate() []error {
 		validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("both password and token cannot be empty, please choose one")})
 	}
 
-	if c.InsecureSkipTLSVerify {
+	if !c.InsecureSkipTLSVerify {
 		if c.CACertFilePath == "" {
 			validationErrs = append(validationErrs, helga_errors.ErrValidation{StructName: structName, DerivedFromErr: errors.New("ca_cert_file_path field cannot be empty when insecure_skip_tls_verify is true")})
 		}
@@ -172,6 +172,8 @@ func (c *Cluster) generateKubeConfig() ([]byte, error) {
 		return nil, fmt.Errorf("failed to marshal kubeconfig: %w", err)
 	}
 
+	fmt.Println(string(yamlData))
+
 	return yamlData, nil
 }
 
@@ -199,6 +201,16 @@ func (c *Cluster) InitiateHelmClientByKubeCtx(KubeCtxName string) error {
 	if err != nil {
 		return helga_errors.ErrHelmClient{ErrMsg: fmt.Sprintf("error getting helmClient for cluster: %s\n derived from err: %s", c.Name, err.Error())}
 	}
+
+	return nil
+}
+
+func (c *Cluster) SyncHelmCharts() error {
+	if err := c.helmClient.UpdateChartRepos(); err != nil {
+		return helga_errors.ErrInSyncProcess{ErrMsg: fmt.Sprintf("error updating helm chart repos for cluster: %s\n derived from err: %s", c.Name, err.Error())}
+	}
+
+	
 
 	return nil
 }
