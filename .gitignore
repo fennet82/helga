@@ -1,0 +1,62 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*_test
+
+# Output of `go build`
+*.out
+
+# Dependency directories (ideally, these are managed by Go Modules and not committed)
+vendor/
+
+# Go module cache and metadata
+go.sum
+go.work.sum
+
+# IDE and Editor specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.DS_Store # macOS specific
+Thumbs.db # Windows specific
+
+# Generated documentation
+doc/
+
+# Logs
+*.log
+
+# Temporary files
+*~
+.#*
+*.bak
+*.swp
+*.swo
+
+# Coverage files
+*.prof
+*.cov
+
+# Database files (if applicable, e.g., for SQLite)
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables (if you have a .env file)
+.env
+.env.*
+
+# Local configuration files
+config.local.json
+secrets.json
+
+# If you have a build directory
+build/
+
+# If you use a release directory
+release/

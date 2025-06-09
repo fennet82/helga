@@ -1,0 +1,54 @@
+global:
+  cluster:
+    insecure_skip_tls_verify: true
+    # ca_cert_file_path: "/path/to/ca.crt"
+  artifact:
+    decideByVersion: false
+    domain: "artifact.example.com/artifactory"
+    username: "artifact_user"
+    password: "artifact_pass_123"
+    repos:
+      - name: "bla"
+        paths:
+          - "/path/to/artifact1"
+          - "/path/to/artifact2"
+
+clusters:
+  - name: "cluster-1"
+    server: "https://cluster1.example.com"
+    username: "cluster_user_1"
+    password: "cluster_pass_1"
+    namespaces:
+      - name: "namespace-1-cluster-1"
+        sync_interval: 5
+        artifact:
+          repos:
+            - name: "bla"
+              paths:
+                - "/namespace-1/path/to/artifact1"
+                - "/namespace-1/path/to/artifact2"
+      - name: "namespace-2-cluster-1"
+        sync_interval: 5
+        artifact:
+          repos:
+          paths:
+            - "/namespace-2/path/to/artifact3"
+            - "/namespace-2/path/to/artifact4"
+
+  - name: "cluster-2"
+    server: "https://cluster2.example.com"
+    username: "cluster_user_2"
+    password: "cluster_pass_2"
+    namespaces:
+      - name: "namespace-1-cluster-2"
+        sync_interval: 5
+        artifact:
+          paths:
+            - "/namespace-1/path/to/artifact5"
+            - "/namespace-1/path/to/artifact6"
+      - name: "namespace-3-cluster-2"
+        sync_interval: 5
+        artifact:
+          paths:
+            - "/namespace-3/path/to/artifact7"
+            - "/namespace-3/path/to/artifact8"
